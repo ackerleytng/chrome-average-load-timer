@@ -1,29 +1,28 @@
 {
-  "name": "Page load time",
-  "version": "1.2.2",
   "manifest_version": 2,
-  "description": "Displays page load time in the toolbar",
-  "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+  "name": "Page Load Timer with Averages",
+  "version": "1.2.3",
+  "description": "Displays page load time in the toolbar, together with averages",
+  "icons": {
+    "16": "stopwatch16.png",
+    "48": "stopwatch48.png",
+    "128": "stopwatch128.png"
   },
   "browser_action": {
     "default_icon": "stopwatch22.png",
     "default_popup": "info.html"
   },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
   "content_scripts": [{
-      "run_at" : "document_idle",
-      "matches": ["*://*/*"],
-      "js": ["retrieve-timing-info.js"]
+    "run_at" : "document_idle",
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["retrieve-timing-info.js"]
   }],
   "permissions": [
-      "http://*/*",
-      "tabs",
-      "storage",
-      "webNavigation"
-  ],
-  "icons": { "16": "stopwatch16.png",
-             "48": "stopwatch48.png",
-             "128": "stopwatch128.png"
-		   }
+    "tabs",
+    "storage"
+  ]
 }
