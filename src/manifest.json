@@ -12,8 +12,9 @@
     "default_popup": "info.html"
   },
   "content_scripts": [{
+      "run_at" : "document_idle",
       "matches": ["*://*/*"],
-      "js": ["timer.js"]
+      "js": ["retrieve-timing-info.js"]
   }],
   "permissions": [
       "http://*/*",
