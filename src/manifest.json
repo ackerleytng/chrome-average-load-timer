@@ -17,7 +17,7 @@
     "persistent": false
   },
   "content_scripts": [{
-    "run_at" : "document_idle",
+    "run_at" : "document_start",
     "matches": ["http://*/*", "https://*/*"],
     "js": ["retrieve-timing-info.js"]
   }],

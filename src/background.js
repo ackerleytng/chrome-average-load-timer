@@ -25,6 +25,16 @@ chrome.runtime.onMessage.addListener(
     var loadingTime = String(((t.loadEventEnd - start) / 1000).toPrecision(3)).substring(0, 4);
     chrome.browserAction.setBadgeText({text: loadingTime, tabId: sender.tab.id});
 
+    // Do calculations for this page
+    var dataForThisPage = {};
+    dataForThisPage['redirectTime']     = t.redirectEnd - t.redirectStart;
+    dataForThisPage['domainLookupTime'] = t.domainLookupEnd - t.domainLookupStart;
+    dataForThisPage['connectTime']      = t.connectEnd - t.connectStart;
+    dataForThisPage['requestTime']      = t.responseStart - t.requestStart;
+    dataForThisPage['responseTime']     = t.responseEnd - t.responseStart;
+    dataForThisPage['domTime']          = t.domComplete - t.domLoading;
+    dataForThisPage['loadTime']         = t.loadEventEnd - t.loadEventStart;
+
     // This manages averages
     chrome.storage.local.get('averages', function(data) {
       // If this data was never set before
@@ -54,17 +64,35 @@ chrome.runtime.onMessage.addListener(
 
         return newData;
       }
-
-      var dataForThisPage = {};
-      dataForThisPage['redirectTime']     = t.redirectEnd - t.redirectStart;
-      dataForThisPage['domainLookupTime'] = t.domainLookupEnd - t.domainLookupStart;
-      dataForThisPage['connectTime']      = t.connectEnd - t.connectStart;
-      dataForThisPage['requestTime']      = t.responseStart - t.requestStart;
-      dataForThisPage['responseTime']     = t.responseEnd - t.responseStart;
-      dataForThisPage['domTime']          = t.domComplete - t.domLoading;
-      dataForThisPage['loadTime']         = t.loadEventEnd - t.loadEventStart;
       
       data.averages = updateAverages(data.averages, dataForThisPage);
+      
+      // Store it all back
+      chrome.storage.local.set(data);
+    });
+
+    // This manages maximums
+    chrome.storage.local.get('maximums', function(data) {
+      // If this data was never set before
+      if (!data.maximums) {
+        data.maximums = {};
+      }
+
+      function updateMaximums(currentData, dataForThisPage) {
+        var newData = {}
+        
+        for (var key in dataForThisPage) {
+          if (!currentData[key]) {
+            currentData[key] = 0;
+          }
+          
+          newData[key] = Math.max(currentData[key], dataForThisPage[key]);
+        }
+
+        return newData;
+      }
+      
+      data.maximums = updateMaximums(data.maximums, dataForThisPage);
       
       // Store it all back
       chrome.storage.local.set(data);

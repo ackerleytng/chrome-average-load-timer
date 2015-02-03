@@ -2,17 +2,22 @@ var total,
     acc = 0;
 
 function set(id, start, length, noacc) {
-  var x = Math.round(start / total * 300);
-
   if (!noacc) {
     acc += length;
   }
+
+  // Fill in values
   document.getElementById(id + 'When').innerHTML = start;
   document.getElementById(id).innerHTML = length;
   document.getElementById(id + 'Total').innerHTML = noacc ? '-' : acc;
+
+  // Draw bars
+  var table_width = 400;
+  var x_relative = Math.round(start / total * table_width);
+  var length_relative = Math.round(length / total * table_width);
   document.getElementById('r-' + id).style.cssText =
-    'background-size:' + Math.round(length / total * 300) + 'px 100%;' +
-    'background-position-x:' + (x >= 300 ? 299 : x) + 'px;';
+    'background-size:' + length_relative + 'px 100%;' +
+    'background-position-x:' + (x_relative >= table_width ? (table_width - 1) : x_relative) + 'px;';
 }
 
 function fillIn(id, value) {
@@ -59,6 +64,20 @@ function display() {
         fillIn(key, averages[key]);
       }
     });
+
+    // Fill in maximums
+    chrome.storage.local.get('maximums', function(data) {
+      maximums = data.maximums;
+
+      if (!maximums) {
+        // The default values are coded in HTML (0)
+        return;
+      }
+
+      for (var key in maximums) {
+        fillIn('max_' + key, maximums[key]);
+      }
+    });
   });
 }
 
@@ -66,7 +85,7 @@ function display() {
 display();
 
 window.addEventListener('load', function() {
-  document.getElementById('clearAverages').addEventListener('click', function() {
+  document.getElementById('clearStatistics').addEventListener('click', function() {
     // Clears the averages
     chrome.storage.local.get('averages', function(data) {
       for (var key in data.averages) {
@@ -74,6 +93,15 @@ window.addEventListener('load', function() {
       }
       chrome.storage.local.set(data);
     });
+
+    // Clears the maximums
+    chrome.storage.local.get('maximums', function(data) {
+      for (var key in data.maximums) {
+        data.maximums[key] = 0;
+      }
+      chrome.storage.local.set(data);
+    });
+
     display();
   }, false)
 }, false);
