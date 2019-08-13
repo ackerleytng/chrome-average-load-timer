@@ -33,8 +33,12 @@ function fillIn(id, value) {
 function display() {
   chrome.tabs.getSelected(null, function (tab) {
     chrome.storage.local.get('cache', function(data) {
-      var t = data.cache['tab' + tab.id],
-          start = t.redirectStart == 0 ? t.fetchStart : t.redirectStart;
+      var t = data.cache['tab' + tab.id];
+
+      if (!t)
+        return;
+      
+      var start = t.redirectStart == 0 ? t.fetchStart : t.redirectStart;
 
       total = t.loadEventEnd - start;
 

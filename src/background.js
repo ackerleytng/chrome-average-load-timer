@@ -9,6 +9,30 @@
 //-----------------------------------------------------------------------
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
+
+    // If sender.tab is defined, then it must be from a real tab
+    //   if not, then it's not something we want to track
+    if (!sender.tab)
+      return;
+
+    // We don't want to track newtabs
+    if (sender.tab.url === "chrome://newtab/")
+      return;
+
+    console.log(sender.tab.id);
+    
+    // We don't want to track autocompletes in chrome, so the tab has to exist
+    quit = false;
+    chrome.tabs.get(sender.tab.id, function(tab) {
+      if (chrome.runtime.lastError || !tab) {
+        // Tab does not exist
+        quit = true;
+      }
+    });
+    if (quit)
+      return;
+
+
     var t = request.timing;
     
     // This cache stores page load time for each tab, so they don't interfere
@@ -102,9 +126,19 @@ chrome.runtime.onMessage.addListener(
 
 
 // Clear data on closing tab
-chrome.tabs.onRemoved.addListener(function(tabId) {
+chrome.tabs.onRemoved.addListener(function(tabId, removeInfo) {
   chrome.storage.local.get('cache', function(data) {
-    if (data.cache) delete data.cache['tab' + tabId];
+    if (data.cache)
+      delete data.cache['tab' + tabId];
+    chrome.storage.local.set(data);
+  });
+});
+
+chrome.tabs.onReplaced.addListener(function(addedTabId, removedTabId) {
+  chrome.storage.local.get('cache', function(data) {
+    if (data.cache)
+      delete data.cache['tab' + removedTabId];
+    // Adding tabs is handled through messaging
     chrome.storage.local.set(data);
   });
 });
